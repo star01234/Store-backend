@@ -9,7 +9,7 @@ const { Op } = require("sequelize");
 // Register a new user
 exports.signup = async (req, res) => {
   try {
-    const { username, email, password, roles } = req.body;
+    const { username, email, password, address, lat, lng, roles } = req.body;
 
     if (!username || !email || !password) {
       return res
@@ -19,7 +19,7 @@ exports.signup = async (req, res) => {
 
     // Prepare user data
     const hashedPassword = bcrypt.hashSync(password, 8);
-    const newUser = { username, email, password: hashedPassword };
+    const newUser = { username, email, password: hashedPassword, address, lat, lng};
 
     // Save user in the database
     const user = await User.create(newUser);
@@ -93,6 +93,9 @@ exports.signin = async (req, res) => {
       id: user.id,
       username: user.username,
       email: user.email,
+      address: user.address, 
+      lat: user.lat, 
+      lng: user.lng, 
       roles: authorities,
       accessToken: token,
     });

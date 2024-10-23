@@ -2,11 +2,11 @@ const Store = require("../models/store.model")
 
 // Create and Save a New Store
 exports.create = async (req, res) => {
-  const { name, adminId, address, lat, lng } = req.body;
+  const { name, adminId, address, lat, lng, radius } = req.body;
 
-  if (!name || !adminId || !address || !lat || !lng) {  
+  if (!name || !adminId || !address || !lat || !lng || !radius) {
     return res.status(400).send({
-      message: "All fields (name, adminId, address, lat, lng) must be provided!",
+      message: "All fields (name, adminId, address, lat, lng, radius) must be provided!",
     });
   }
 
@@ -24,17 +24,17 @@ exports.create = async (req, res) => {
       adminId: adminId,
       address: address,
       lat: lat,
-      lng: lng
+      lng: lng,
+      radius: radius,  
     };
-    
+
     Store.create(newStore)
       .then((data) => {
         res.status(201).send(data);
       })
       .catch((error) => {
         res.status(500).send({
-          message:
-            error.message || "Something error occurred creating the Store.",
+          message: error.message || "Something error occurred creating the Store.",
         });
       });
   });
@@ -60,16 +60,13 @@ exports.getById = async (req, res) => {
   await Store.findByPk(id)
     .then((data) => {
       if (!data) {
-        return res
-          .status(404)
-          .send({ message: "Not found Store with id " + id });
+        return res.status(404).send({ message: "Not found Store with id " + id });
       }
       res.send(data);
     })
     .catch((error) => {
       res.status(500).send({
-        message:
-          error.message || "Something error occurred retrieving the Store.",
+        message: error.message || "Something error occurred retrieving the Store.",
       });
     });
 };
@@ -88,17 +85,13 @@ exports.update = async (req, res) => {
         });
       } else {
         res.send({
-          message:
-            "Cannot update Store with id=" +
-            id +
-            ". Maybe Store was not found or req.body is empty!",
+          message: "Cannot update Store with id=" + id + ". Maybe Store was not found or req.body is empty!",
         });
       }
     })
     .catch((error) => {
       res.status(500).send({
-        message:
-          error.message || "Something error occurred updating the Store.",
+        message: error.message || "Something error occurred updating the Store.",
       });
     });
 };
@@ -123,8 +116,7 @@ exports.delete = async (req, res) => {
     })
     .catch((error) => {
       res.status(500).send({
-        message:
-          error.message || "Something error occurred deleting the Store.",
+        message: error.message || "Something error occurred deleting the Store.",
       });
     });
 };

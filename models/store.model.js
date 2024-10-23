@@ -31,6 +31,10 @@ const Store = sequelize.define("Stores", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  radius: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  }
 });
 
 // สร้างความสัมพันธ์

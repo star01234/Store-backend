@@ -1,6 +1,6 @@
-const { DataType, DataTypes } = require("sequelize");
+const { DataTypes } = require("sequelize");
 const sequelize = require("./db");
-//define DB Schema
+
 const User = sequelize.define("user", {
   id: {
     type: DataTypes.INTEGER,
@@ -18,6 +18,18 @@ const User = sequelize.define("user", {
   password: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+  address: {
+    type: DataTypes.STRING,
+    allowNull: true, 
+  },
+  lat: {
+    type: DataTypes.FLOAT, 
+    allowNull: true, 
+  },
+  lng: {
+    type: DataTypes.FLOAT, 
+    allowNull: true, 
   },
 });
 
