@@ -4,82 +4,81 @@ const db = require("../models");
 const User = db.User;
 
 // Verify token
-const verifyToken = (req, res, next) => {
-  let token = req.headers["x-access-token"];
+const verifyToken = async (req, res, next) => {
+  const token = req.headers["x-access-token"];
 
   if (!token) {
     return res.status(403).send({ message: "No token provided!" });
   }
 
-  jwt.verify(token, config.secret, (err, decoded) => {
-    if (err) {
-      return res.status(401).send({ message: "Unauthorized!" });
-    }
-    req.userId = decoded.id; // แก้เป็น userId
+  try {
+    const decoded = jwt.verify(token, config.secret);
+    req.userId = decoded.id; // ตั้งค่า req.userId จาก decoded token
     next();
-  });
+  } catch (err) {
+    return res.status(401).send({ message: "Unauthorized!" });
+  }
 };
 
-// Check if the user is an Admin
+// isAdmin middleware
 const isAdmin = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.userId);
     if (!user) {
-      return res.status(404).send({ message: "User Not found." });
+      return res.status(404).send({ message: "User not found." });
     }
+
     const roles = await user.getRoles();
-    for (let role of roles) {
-      if (role.name === "admin") {
-        return next();
-      }
+    const isAdminRole = roles.some((role) => role.name === "admin");
+    if (isAdminRole) {
+      next();
+    } else {
+      res.status(403).send({ message: "Require Admin Role!" });
     }
-    return res
-      .status(403)
-      .send({ message: "Unauthorized access, require Admin Role!" });
-  } catch (error) {
-    return res.status(500).send({ message: error.message });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
 
-// Check if the user is a Moderator
+// isMod middleware
 const isMod = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.userId);
     if (!user) {
-      return res.status(404).send({ message: "User Not found." });
+      return res.status(404).send({ message: "User not found." });
     }
+
     const roles = await user.getRoles();
-    for (let role of roles) {
-      if (role.name === "moderator") {
-        return next();
-      }
+    const isModRole = roles.some((role) => role.name === "moderator");
+    if (isModRole) {
+      next();
+    } else {
+      res.status(403).send({ message: "Require Moderator Role!" });
     }
-    return res
-      .status(403)
-      .send({ message: "Unauthorized access, require Moderator Role!" });
-  } catch (error) {
-    return res.status(500).send({ message: error.message });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
 
-// Check if the user is either an Admin or a Moderator
+// isModOrAdmin middleware
 const isModOrAdmin = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.userId);
     if (!user) {
-      return res.status(404).send({ message: "User Not found." });
+      return res.status(404).send({ message: "User not found." });
     }
+
     const roles = await user.getRoles();
-    for (let role of roles) {
-      if (role.name === "admin" || role.name === "moderator") {
-        return next();
-      }
+    const isModOrAdminRole = roles.some(
+      (role) => role.name === "admin" || role.name === "moderator"
+    );
+    if (isModOrAdminRole) {
+      next();
+    } else {
+      res.status(403).send({ message: "Require Moderator or Admin Role!" });
     }
-    return res
-      .status(403)
-      .send({ message: "Unauthorized access, require Mod or Admin Role!" });
-  } catch (error) {
-    return res.status(500).send({ message: error.message });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
 

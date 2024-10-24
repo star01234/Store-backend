@@ -1,43 +1,29 @@
-const Store = require("../models/store.model")
+const Store = require("../models/store.model");
 
 // Create and Save a New Store
 exports.create = async (req, res) => {
-  const { name, adminId, address, lat, lng, radius } = req.body;
+  try {
+    const { name, address, direction, lat, lng, radius } = req.body;
+    const userId = req.userId; // รับ userId จาก token ที่ถูก decode
 
-  if (!name || !adminId || !address || !lat || !lng || !radius) {
-    return res.status(400).send({
-      message: "All fields (name, adminId, address, lat, lng, radius) must be provided!",
+    const store = await Store.create({
+      name,
+      address,
+      adminId: userId,
+      direction,
+      lat,
+      lng,
+      radius,
     });
+
+    res.status(201).send({
+      message: "Store created successfully!",
+      store,
+    });
+  } catch (error) {
+    console.error("Error creating store:", error);
+    res.status(500).send({ message: "Error occurred while creating store." });
   }
-
-  // Check if the Store already exists
-  await Store.findOne({ where: { name: name } }).then((foundStore) => {
-    if (foundStore) {
-      return res.status(400).send({
-        message: "Store already exists!",
-      });
-    }
-
-    // Create a New Store
-    const newStore = {
-      name: name,
-      adminId: adminId,
-      address: address,
-      lat: lat,
-      lng: lng,
-      radius: radius,  
-    };
-
-    Store.create(newStore)
-      .then((data) => {
-        res.status(201).send(data);
-      })
-      .catch((error) => {
-        res.status(500).send({
-          message: error.message || "Something error occurred creating the Store.",
-        });
-      });
-  });
 };
 
 // Get all Stores
@@ -60,13 +46,16 @@ exports.getById = async (req, res) => {
   await Store.findByPk(id)
     .then((data) => {
       if (!data) {
-        return res.status(404).send({ message: "Not found Store with id " + id });
+        return res
+          .status(404)
+          .send({ message: "Not found Store with id " + id });
       }
       res.send(data);
     })
     .catch((error) => {
       res.status(500).send({
-        message: error.message || "Something error occurred retrieving the Store.",
+        message:
+          error.message || "Something error occurred retrieving the Store.",
       });
     });
 };
@@ -85,13 +74,17 @@ exports.update = async (req, res) => {
         });
       } else {
         res.send({
-          message: "Cannot update Store with id=" + id + ". Maybe Store was not found or req.body is empty!",
+          message:
+            "Cannot update Store with id=" +
+            id +
+            ". Maybe Store was not found or req.body is empty!",
         });
       }
     })
     .catch((error) => {
       res.status(500).send({
-        message: error.message || "Something error occurred updating the Store.",
+        message:
+          error.message || "Something error occurred updating the Store.",
       });
     });
 };
@@ -116,10 +109,8 @@ exports.delete = async (req, res) => {
     })
     .catch((error) => {
       res.status(500).send({
-        message: error.message || "Something error occurred deleting the Store.",
+        message:
+          error.message || "Something error occurred deleting the Store.",
       });
     });
 };
-
-
-
